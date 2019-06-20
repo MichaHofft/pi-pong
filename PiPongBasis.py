@@ -173,7 +173,26 @@ class PixelKarte:
     def Hoehe(self):
         return self.height    
 
+class Spieler:
+    """ Steht fuer ein unabhaenging bewegbares Objekt, welches auf der SpielBasis frei positioniert werden kann """
+    def __init__(self, spielerHoehe, spielerBreite):
+        """ Erschafft einen neuen Spieler. Dieser nimmt einen Platz mit ``spielerHoehe`` x ``spielerBreite`` ein. Diese
+        Abmessung sind wichtig fuer die Kollisionserkennung """
+        self.width = spielerBreite
+        self.height = spielerHoehe
+        self.SetzeLeitplanken(-1,-1,-1,-1)
+
+    def SetzeLeitplanken(self, oben, unten, links, rechts):
+        """ Setzt oder loescht die Leitplanken, an denen der Spieler automatisch abprallt.
+        Positive Angaben sind 0-basierte Pixel-Positionen.
+        -1 schaltet die Funktion fuer die jeweilige Richtung ab. """
+        self.railTop = open
+        self.railBottom = unten
+        self.railLeft = links
+        self.railRight = rechts
+
 class SpielBasis(SampleBase):
+    """ Hauptprogramm fuer das Spiel """
     def __init__(self, *args, **kwargs):
         super(SpielBasis, self).__init__(*args, **kwargs)
         self.FarbeSchwarz = graphics.Color(0, 64, 0)
