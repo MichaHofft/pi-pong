@@ -1,4 +1,19 @@
-from PiPongBasis import ZeichenKarte, PixelKarte, SpielBasis
+from PiPongBasis import ZeichenKarte, PixelKarte, SpielBasis, Spieler
+
+class Geist(Spieler):
+
+    def Start(self):
+        self.SetzeGroesse(5,5)
+        self.SetzePosition(32,32)
+        self.SetzeGeschwidigkeit(0.09,0.11)
+        self.SetzeLeitplanken(0, 63, 0, 63)
+        self.ModusFrei()
+        self.kachel = None
+
+    def Male(self,x,y):
+        print(x,y)
+        # self.basis.MaleBlock(x,y,x+4,y+4, self.basis.FarbeBlauIntensiv)
+        self.basis.MaleSprite(x,y,self.kachel)
 
 class Pacman(SpielBasis):
 
@@ -27,6 +42,10 @@ class Pacman(SpielBasis):
 
         self.x = 0
 
+        blinky = Geist()
+        blinky.kachel = pacmanKacheln['a']
+        self.AddiereSpieler(blinky)
+
     def SpielBerechneEinBild(self):
 
         if False:
@@ -35,7 +54,7 @@ class Pacman(SpielBasis):
             if self.x > 58:
                 self.x = 0
 
-        if True:
+        if False:
             self.MaleSprite(0,0,self.WeltKarte)
 
 # Haupt-Funktion

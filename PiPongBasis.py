@@ -175,21 +175,91 @@ class PixelKarte:
 
 class Spieler:
     """ Steht fuer ein unabhaenging bewegbares Objekt, welches auf der SpielBasis frei positioniert werden kann """
-    def __init__(self, spielerHoehe, spielerBreite):
-        """ Erschafft einen neuen Spieler. Dieser nimmt einen Platz mit ``spielerHoehe`` x ``spielerBreite`` ein. Diese
-        Abmessung sind wichtig fuer die Kollisionserkennung """
+    def __init__(self):
+        """ Erschafft einen neuen Spieler. Fuer diesen sollten mit `SetzeGroesse` eine Groesse vorgegeben werden und
+        mit `SetzePosition` eine Ausgangsposition. """
+        self.basis = None
+        self.width = 1
+        self.height = 1
+        self.SetzeLeitplanken(-1,-1,-1,-1)
+        self.x = 0
+        self.y = 0
+        self.vx = 0
+        self.vy = 0
+        self.mode = 0  
+        self.Start()
+
+    def SetzeGroesse(self, spielerHoehe, spielerBreite):
+        """ Bestimmt den Platz mit ``spielerHoehe`` x ``spielerBreite``, den der Spieler einnimmt. Diese
+        Abmessung sind wichtig fuer die Kollisionserkennung. """ 
         self.width = spielerBreite
         self.height = spielerHoehe
-        self.SetzeLeitplanken(-1,-1,-1,-1)
+
+    def SetzePosition(self, x, y):
+        """ Setzt eine neue Position fuer den Spieler. """
+        self.x = x
+        self.y = y
+
+    def SetzeGeschwidigkeit(self, vx, vy):
+        """ Setzt eine neue Geschwindigkeit fuer den Spieler, jeweils ``vx`` fuer die horizontale, ``vy`` fuer die vertikale Komponente. 
+        Geschwindigkeit 1 bedeutet 1 Pixel pro Bildzyklus. """
+        self.vx = vx
+        self.vy = vy
 
     def SetzeLeitplanken(self, oben, unten, links, rechts):
         """ Setzt oder loescht die Leitplanken, an denen der Spieler automatisch abprallt.
         Positive Angaben sind 0-basierte Pixel-Positionen.
         -1 schaltet die Funktion fuer die jeweilige Richtung ab. """
-        self.railTop = open
+        self.railTop = oben
         self.railBottom = unten
         self.railLeft = links
         self.railRight = rechts
+
+    def ModusStop(self):
+        """ Spieler bewegt sich nicht automatisch. """
+        self.mode = 0
+
+    def ModusFrei(self):
+        """ Spieler bewegt sich mit einer vorgebenen Geschwidigkeit und prallt evtl. an den Leitplanken ab. """
+        self.mode = 1
+
+    def Start(self):
+        """ Diese Funktion wird einmal am Start des Spielers aufgerufen, um zum Beispiel Variablen richtig zu
+        initialisieren. Du musst diese Funktion 'ueberladen'. """
+        pass
+
+    def Male(self, x, y):
+        """ Diese Funktion wird einmal in jeder Spielrunde aufgerufen. Hier kannst Du den Spieler auf dem Spielfeld
+        malen. ``x`` und ``y`` sind die 0-basierten Positionen fuer die linke/ obere Ecke des Spielers.
+        Du musst diese Funktion 'ueberladen'. """
+        pass
+
+    def Cycle(self):
+        """ Intern. Musst Du nicht aufrufen. """
+        if self.basis is None:
+            return
+
+        if self.mode == 1:
+            self.x += self.vx
+            self.y += self.vy
+
+            if self.railLeft >= 0 and self.x <= self.railLeft:
+                self.x = self.railLeft
+                self.vx = abs(self.vx)
+
+            if self.railTop >= 0 and self.y <= self.railTop:
+                self.y = self.railTop
+                self.vy = abs(self.vy)
+
+            if self.railRight >= 0 and self.x + self.width - 1 > self.railRight:
+                self.x = self.railRight - self.width + 1
+                self.vx = -abs(self.vx)
+
+            if self.railBottom >= 0 and self.y + self.height - 1 > self.railBottom:
+                self.y = self.railBottom - self.height + 1
+                self.vy = -abs(self.vy)
+
+        self.Male(int(self.x), int(self.y))
 
 class SpielBasis(SampleBase):
     """ Hauptprogramm fuer das Spiel """
@@ -199,6 +269,7 @@ class SpielBasis(SampleBase):
         self.FarbeRotIntensiv = graphics.Color(255, 0, 0)
         self.FarbeGruenIntensiv = graphics.Color(0, 255, 0)
         self.FarbeBlauIntensiv = graphics.Color(0, 0, 255)
+        self.players = [] 
         self.SpielStart()
 
     def SpielStart(self):
@@ -207,13 +278,27 @@ class SpielBasis(SampleBase):
     def SpielBerechneEinBild(self):
         pass
 
+    def AddiereSpieler(self, spieler):
+        """ Beruecksichtigt einen neuen Spieler im Spiel. """
+        if not isinstance(spieler, Spieler):
+            return
+        spieler.basis = self
+        self.players.append(spieler)
+
+    def LoescheSpieler(self, spieler):
+        """ Loescht einen Spieler aus dem Spiel. """
+        if not isinstance(spieler, Spieler):
+            return
+        if spieler in self.players:
+            self.players.remove(spieler)
+
     def MaleBlock(self, x1, y1, x2, y2, farbe):
         """ Malt einen rechteckigen Block zwischen den Koordinaten (x1,y1) und (x2,y2).
         Die Koordinaten sind 0-basiert. """
 
-        for y in range(y1,y2):
-            graphics.DrawLine(self.double_buffer, x1, y, x2, y, farbe)
-        # graphics.DrawBlock(self.double_buffer, x1, y1, x2, y2, farbe)
+        # for y in range(y1,y2+1):
+        #     graphics.DrawLine(self.double_buffer, x1, y, x2, y, farbe)
+        graphics.DrawBlock(self.double_buffer, x1, y1, x2, y2, farbe)
 
     def MaleSprite(self, x1, y1, sprite):
         graphics.DrawSprite(self.double_buffer, x1, y1, x1+sprite.width-1, y1+sprite.height-1, sprite.RgbDaten())
@@ -224,6 +309,9 @@ class SpielBasis(SampleBase):
             self.MaleBlock(0,0,63,63, self.FarbeSchwarz)
 
             self.SpielBerechneEinBild()
+
+            for sp in self.players:
+                sp.Cycle()
 
             self.double_buffer = self.matrix.SwapOnVSync(self.double_buffer)
             time.sleep(0.01)
