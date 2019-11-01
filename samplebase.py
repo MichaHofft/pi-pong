@@ -4,8 +4,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.dirname(__file__) + '/..'))
-from rgbmatrix import RGBMatrix, RGBMatrixOptions
-
+from rgbmatrix import RGBMatrix, RGBMatrixOptions, graphics
 
 class SampleBase(object):
     def __init__(self, *args, **kwargs):
@@ -34,13 +33,22 @@ class SampleBase(object):
     def run(self):
         print("Running")
 
+    def GebeFarbe(self, r, g, b):
+        return graphics.Color(r,g,b)
+
+    def DrawBlock(self, context, x1, y1, x2, y2, color):
+        graphics.DrawBlock(context, x1, y1, x2, y2, color)
+
+    def DrawSprite(self, context, x1, y1, x2, y2, colors):
+        graphics.DrawSprite(context, x1, y1, x2, y2, colors)
+
     def process(self):
         self.args = self.parser.parse_args()
 
         options = RGBMatrixOptions()
 
         if self.args.led_gpio_mapping != None:
-          options.hardware_mapping = self.args.led_gpio_mapping
+            options.hardware_mapping = self.args.led_gpio_mapping
         options.rows = self.args.led_rows
         options.cols = self.args.led_cols
         options.chain_length = self.args.led_chain

@@ -2,7 +2,8 @@ import array
 import time
 from PIL import Image
 from samplebase import SampleBase
-from rgbmatrix import graphics
+from fakebase import FakeBase
+# from rgbmatrix import graphics
 import pigpio
 import pigpio_encoder
 
@@ -261,14 +262,14 @@ class Spieler:
 
         self.Male(int(self.x), int(self.y))
 
-class SpielBasis(SampleBase):
+class SpielBasis(FakeBase):
     """ Hauptprogramm fuer das Spiel """
     def __init__(self, *args, **kwargs):
         super(SpielBasis, self).__init__(*args, **kwargs)
-        self.FarbeSchwarz = graphics.Color(0, 64, 0)
-        self.FarbeRotIntensiv = graphics.Color(255, 0, 0)
-        self.FarbeGruenIntensiv = graphics.Color(0, 255, 0)
-        self.FarbeBlauIntensiv = graphics.Color(0, 0, 255)
+        self.FarbeSchwarz = self.GebeFarbe(0, 64, 0)
+        self.FarbeRotIntensiv = self.GebeFarbe(255, 0, 0)
+        self.FarbeGruenIntensiv = self.GebeFarbe(0, 255, 0)
+        self.FarbeBlauIntensiv = self.GebeFarbe(0, 0, 255)
         self.players = [] 
         self.SpielStart()
 
@@ -298,10 +299,10 @@ class SpielBasis(SampleBase):
 
         # for y in range(y1,y2+1):
         #     graphics.DrawLine(self.double_buffer, x1, y, x2, y, farbe)
-        graphics.DrawBlock(self.double_buffer, x1, y1, x2, y2, farbe)
+        self.DrawBlock(self.double_buffer, x1, y1, x2, y2, farbe)
 
     def MaleSprite(self, x1, y1, sprite):
-        graphics.DrawSprite(self.double_buffer, x1, y1, x1+sprite.width-1, y1+sprite.height-1, sprite.RgbDaten())
+        self.DrawSprite(self.double_buffer, x1, y1, x1+sprite.width-1, y1+sprite.height-1, sprite.RgbDaten())
     
     def run(self):
         self.double_buffer = self.matrix.CreateFrameCanvas()
